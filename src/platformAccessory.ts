@@ -33,6 +33,8 @@ export class MolekulePlatformAccessory {
     private readonly config: PlatformConfig,
     private readonly log: Logger
   ) {
+    this.caller = new HttpAJAX(this.log, this.config);
+
     // set accessory information
     this.accessory
       .getService(this.platform.Service.AccessoryInformation)!
@@ -101,7 +103,7 @@ export class MolekulePlatformAccessory {
      */
   }
 
-  private caller = new HttpAJAX(this.log, this.config);
+  private caller: HttpAJAX;
   /**
    * Handle "SET" requests from HomeKit
    * These are sent when the user changes the state of an accessory, for example, turning on a Light bulb.
@@ -251,8 +253,8 @@ export class MolekulePlatformAccessory {
 
   async updateStates() {
     const re = await this.caller.httpCall('GET', '', '', 1);
-    const response = await re.json();
-    if (response === undefined) return 1;
+    const response = await re.json() as { content: { serialNumber: string; fanspeed: string; pecoFilter: number; online: string; mode: string }[] } | null;
+    if (!response) return 1;
     for (let i = 0; i < Object.keys(response.content).length; i++) {
       if (
         response.content[i].serialNumber ===
@@ -260,7 +262,7 @@ export class MolekulePlatformAccessory {
       ) {
         this.platform.log.info('Get Speed ->', response.content[i].fanspeed);
 
-        this.state.Speed = response.content[i].fanspeed * 33.33333333;
+        this.state.Speed = Number(response.content[i].fanspeed) * 33.33333333;
         this.state.Filter = response.content[i].pecoFilter;
         this.state.Auto = response.content[i].fanspeed === '2' ? 1 : 0;
 
