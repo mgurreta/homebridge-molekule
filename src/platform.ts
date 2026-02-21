@@ -6,7 +6,7 @@ interface deviceData {
   name: string
   serialNumber: string
 }
-let intervalID: NodeJS.Timer
+let intervalID: ReturnType<typeof setInterval>
 const refreshInterval = 60 //token refresh interval in minutes
 /**
  * HomebridgePlatform
@@ -14,8 +14,8 @@ const refreshInterval = 60 //token refresh interval in minutes
  * parse the user config and discover/register accessories with Homebridge.
  */
 export class MolekuleHomebridgePlatform implements DynamicPlatformPlugin {
-  public readonly Service: typeof Service = this.api.hap.Service
-  public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic
+  public readonly Service: typeof Service
+  public readonly Characteristic: typeof Characteristic
 
   // this is used to track restored cached accessories
   public readonly accessories: PlatformAccessory[] = []
@@ -26,6 +26,8 @@ export class MolekuleHomebridgePlatform implements DynamicPlatformPlugin {
     public readonly api: API,
     private caller = new HttpAJAX(log, config),
   ) {
+    this.Service = this.api.hap.Service
+    this.Characteristic = this.api.hap.Characteristic
     // When this event is fired it means Homebridge has restored all cached accessories from disk.
     // Dynamic Platform plugins should only register new accessories after this event was fired,
     // in order to ensure they weren't added to homebridge already. This event can also be used
@@ -59,7 +61,7 @@ export class MolekuleHomebridgePlatform implements DynamicPlatformPlugin {
   async discoverDevices () {
     this.log.debug('Discover Devices Called')
     const response = this.caller.httpCall('GET', '', '', 1);
-    const devices = await (await response).json();
+    const devices = await (await response).json() as { content: deviceData[] };
     // loop over the discovered devices and register each one if it has not already been registered
     if ((await response).status !== 200) 
     {
