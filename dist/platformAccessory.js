@@ -8,22 +8,27 @@ const cognito_1 = require("./cognito");
  * Each accessory may expose multiple services of different service types.
  */
 class MolekulePlatformAccessory {
+    platform;
+    accessory;
+    config;
+    log;
+    service;
+    /**
+     * These are just used to create a working example
+     * You should implement your own code to track the state of your accessory
+     */
+    state = {
+        state: 0,
+        Speed: 0,
+        Filter: 100,
+        On: 0,
+        Auto: 0,
+    };
     constructor(platform, accessory, config, log) {
         this.platform = platform;
         this.accessory = accessory;
         this.config = config;
         this.log = log;
-        /**
-         * These are just used to create a working example
-         * You should implement your own code to track the state of your accessory
-         */
-        this.state = {
-            state: 0,
-            Speed: 0,
-            Filter: 100,
-            On: 0,
-            Auto: 0,
-        };
         this.caller = new cognito_1.HttpAJAX(this.log, this.config);
         // set accessory information
         this.accessory
@@ -77,6 +82,7 @@ class MolekulePlatformAccessory {
          * can use the same sub type id.)
          */
     }
+    caller;
     /**
      * Handle "SET" requests from HomeKit
      * These are sent when the user changes the state of an accessory, for example, turning on a Light bulb.
@@ -135,7 +141,7 @@ class MolekulePlatformAccessory {
                 await this.setSpeed((100 / 3) * 2);
             }
         }
-        catch (err) {
+        catch {
             throw new this.platform.api.hap.HapStatusError(-70402 /* this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE */);
         }
         this.service.updateCharacteristic(this.platform.Characteristic.TargetAirPurifierState, value);
@@ -176,13 +182,13 @@ class MolekulePlatformAccessory {
     async updateStates() {
         const re = await this.caller.httpCall('GET', '', '', 1);
         const response = await re.json();
-        if (response === undefined)
+        if (!response)
             return 1;
         for (let i = 0; i < Object.keys(response.content).length; i++) {
             if (response.content[i].serialNumber ===
                 this.accessory.context.device.serialNumber) {
                 this.platform.log.info('Get Speed ->', response.content[i].fanspeed);
-                this.state.Speed = response.content[i].fanspeed * 33.33333333;
+                this.state.Speed = Number(response.content[i].fanspeed) * 33.33333333;
                 this.state.Filter = response.content[i].pecoFilter;
                 this.state.Auto = response.content[i].fanspeed === '2' ? 1 : 0;
                 if (response.content[i].online === 'false') {

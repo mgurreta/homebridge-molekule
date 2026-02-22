@@ -12,6 +12,14 @@ const refreshInterval = 60; //token refresh interval in minutes
  * parse the user config and discover/register accessories with Homebridge.
  */
 class MolekuleHomebridgePlatform {
+    log;
+    config;
+    api;
+    caller;
+    Service;
+    Characteristic;
+    // this is used to track restored cached accessories
+    accessories = [];
     constructor(log, config, api, caller = new cognito_1.HttpAJAX(log, config)) {
         this.log = log;
         this.config = config;
@@ -19,8 +27,6 @@ class MolekuleHomebridgePlatform {
         this.caller = caller;
         this.Service = this.api.hap.Service;
         this.Characteristic = this.api.hap.Characteristic;
-        // this is used to track restored cached accessories
-        this.accessories = [];
         // When this event is fired it means Homebridge has restored all cached accessories from disk.
         // Dynamic Platform plugins should only register new accessories after this event was fired,
         // in order to ensure they weren't added to homebridge already. This event can also be used

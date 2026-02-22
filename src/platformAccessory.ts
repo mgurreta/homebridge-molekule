@@ -182,7 +182,7 @@ export class MolekulePlatformAccessory {
       if (value === 1) {
         await this.setSpeed((100 / 3) * 2);
       }
-    } catch (err) {
+    } catch {
       throw new this.platform.api.hap.HapStatusError(
         this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE
       );

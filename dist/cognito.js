@@ -1,11 +1,7 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HttpAJAX = void 0;
 const amazon_cognito_identity_js_1 = require("amazon-cognito-identity-js");
-const node_fetch_1 = __importDefault(require("node-fetch"));
 let token = '';
 let refreshToken;
 let authError;
@@ -14,6 +10,15 @@ const ClientId = '1ec4fa3oriciupg94ugoi84kkk';
 const PoolId = 'us-west-2_KqrEZKC6r';
 const url = 'https://api.molekule.com/users/me/devices/';
 class HttpAJAX {
+    log;
+    email;
+    pass;
+    authenticationData;
+    userData;
+    userPool;
+    authenticationDetails;
+    cognitoUser;
+    userPoolData;
     constructor(log, config) {
         this.log = log;
         this.email = config.email;
@@ -90,7 +95,7 @@ class HttpAJAX {
                     'content-type': 'application/json',
                 },
             };
-            response = await (0, node_fetch_1.default)(url + extraUrl, contents);
+            response = await fetch(url + extraUrl, contents);
             this.log.debug('HTTP GET STATUS: ' + response.status);
             this.log.debug('HTTP GET CONTENTS: ' + JSON.stringify(response));
             if (response.status === 401 && retry > 0) {
@@ -110,7 +115,7 @@ class HttpAJAX {
                     'content-type': 'application/json',
                 },
             };
-            response = await (0, node_fetch_1.default)(url + extraUrl, contents);
+            response = await fetch(url + extraUrl, contents);
             this.log.debug('HTTP POST STATUS: ' + response.status + ' With contents: ' + send);
             if (response.status === 401 && retry > 0) {
                 authError = true;
